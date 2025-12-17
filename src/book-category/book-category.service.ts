@@ -1,25 +1,23 @@
-import { Injectable, OnModuleInit } from '@nestjs/common'; // เพิ่ม OnModuleInit
+import { Injectable, OnModuleInit, NotFoundException } from '@nestjs/common';
 import { CreateBookCategoryDto } from './dto/create-book-category.dto';
 import { UpdateBookCategoryDto } from './dto/update-book-category.dto';
-import { InjectRepository } from '@nestjs/typeorm'; // เพิ่ม
-import { BookCategory } from './entities/book-category.entity'; // เพิ่ม
-import { Repository } from 'typeorm'; // เพิ่ม
+import { InjectRepository } from '@nestjs/typeorm';
+import { BookCategory } from './entities/book-category.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
-export class BookCategoryService implements OnModuleInit { // เพิ่ม implements OnModuleInit
+export class BookCategoryService implements OnModuleInit {
   
-  // 1. ส่วนนี้คือการ Inject Repository เพื่อให้เราใช้คำสั่ง Database ได้ (this.repo)
   constructor(
     @InjectRepository(BookCategory)
     private repo: Repository<BookCategory>,
   ) {}
 
-  // 2. ฟังก์ชันนี้จะทำงานอัตโนมัติ 1 ครั้ง ตอนเริ่มโปรแกรม
   async onModuleInit() {
-    const count = await this.repo.count(); // นับว่ามีข้อมูลหรือยัง
+    const count = await this.repo.count();
     if (count === 0) {
-      console.log('Seeding Book Categories...'); // โชว์ข้อความใน Terminal
-      await this.repo.save([ // บันทึกข้อมูลตัวอย่าง 3 อัน
+      console.log('Seeding Book Categories...');
+      await this.repo.save([
         { name: 'Fiction', description: 'Stories and novels' },
         { name: 'Technology', description: 'Computers and engineering' },
         { name: 'History', description: 'Past events' }
@@ -27,24 +25,32 @@ export class BookCategoryService implements OnModuleInit { // เพิ่ม im
     }
   }
 
-  create(createBookCategoryDto: CreateBookCategoryDto) {
-    return 'This action adds a new bookCategory';
+  // ข้อ 2: POST ข้อมูลที่ถูกต้อง
+  async create(createBookCategoryDto: CreateBookCategoryDto) {
+    const newCategory = this.repo.create(createBookCategoryDto);
+    return await this.repo.save(newCategory);
   }
 
-  // แก้ไข findAll ให้ดึงข้อมูลจริงจาก DB
   findAll() {
-    return this.repo.find(); 
+    return this.repo.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} bookCategory`;
+  async findOne(id: string) {
+    const category = await this.repo.findOneBy({ id: id as any });
+    if (!category) throw new NotFoundException(`Category with ID ${id} not found`);
+    return category;
   }
 
-  update(id: number, updateBookCategoryDto: UpdateBookCategoryDto) {
-    return `This action updates a #${id} bookCategory`;
+  // ข้อ 3: PATCH แก้ไขชื่อหมวดหมู่
+  async update(id: string, updateBookCategoryDto: UpdateBookCategoryDto) {
+    await this.repo.update(id, updateBookCategoryDto);
+    return this.findOne(id);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} bookCategory`;
+  // ข้อ 4: DELETE ลบหมวดหมู่
+  async remove(id: string) {
+    const category = await this.findOne(id);
+    await this.repo.delete(id);
+    return { message: 'Delete success', deletedData: category };
   }
 }

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BookCategoryModule } from './book-category/book-category.module';
+import { BookModule } from './book/book.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { BookCategoryModule } from './book-category/book-category.module';
        autoLoadEntities: true, // สำคัญ! โหมดนี้จะแก้โครงสร้าง Database ตามโค้ดเราอัตโนมัติ (ใช้เฉพาะตอน Dev)
     }),
     BookCategoryModule,
+    BookModule,
   ],
 })
 export class AppModule {}
