@@ -13,7 +13,7 @@ export class User {
   @Column({ unique: true })
   email: string;
 
-  @Column()
+  @Column({ select: false }) 
   password: string; // เราจะเก็บแบบ Hashed
 
   @Column({ type: 'enum', enum: UserRole, default: UserRole.USER })

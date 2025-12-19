@@ -15,18 +15,16 @@ export class UsersService implements OnModuleInit {
 
   // 1. ส่วนของ Seeding: จะทำงานทันทีที่รันแอปครั้งแรก
   async onModuleInit() {
-    const adminEmail = 'admin@bookstore.com';
-    const adminExists = await this.findOneByEmail(adminEmail);
+    const admin = await this.findOneByEmail('admin@bookstore.com');
 
-    if (!adminExists) {
-      console.log('🚀 Seeding Admin User...');
-      // สร้าง Admin เริ่มต้น
+    if (!admin) {
+      console.log('🌱 Seeding admin user...');
+
       await this.create({
-        email: adminEmail,
+        email: 'admin@bookstore.com',
         password: 'adminpassword',
         role: UserRole.ADMIN,
       } as CreateUserDto);
-      console.log('✅ Admin User created successfully');
     }
   }
 
@@ -61,7 +59,11 @@ export class UsersService implements OnModuleInit {
   }
 
   async findOneByEmail(email: string) {
-    return await this.userRepository.findOneBy({ email });
+  return this.userRepository
+    .createQueryBuilder('user')
+    .addSelect('user.password') // 🔥 จุดสำคัญ
+    .where('user.email = :email', { email })
+    .getOne();
   }
 
   // 4. ส่วนของการแก้ไขและลบ
