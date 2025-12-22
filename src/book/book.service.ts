@@ -41,12 +41,33 @@ export class BookService {
     return updatedBook;
   }
   // ฟังก์ชัน Like ที่คุณต้องการ
-  async incrementLikes(id: string) {
-    const book = await this.findOne(id); // เรียกใช้ findOne ที่เราแก้ข้างบน
-    book.likeCount += 1;
-    return await this.bookRepository.save(book); // บันทึกจำนวนไลก์ที่เพิ่มขึ้น
+  async toggleLike(bookId: string, userId: string) {
+  // 1. ดึงข้อมูลหนังสือพร้อมคน Like มา
+  const book = await this.bookRepository.findOne({
+    where: { id: bookId },
+    relations: ['likedBy'], // ต้องมีตัวนี้เสมอ
+  });
+
+  if (!book) throw new NotFoundException('Book not found');
+
+  // 2. ตรวจสอบว่าเคย Like หรือยัง
+  const userIndex = book.likedBy.findIndex((u) => u.id === userId);
+
+  if (userIndex > -1) {
+    // ถ้าเคย Like แล้ว -> ลบออก (Unlike)
+    book.likedBy.splice(userIndex, 1);
+  } else {
+    // ถ้ายังไม่เคย -> เพิ่มเข้าไป (Like)
+    // หมายเหตุ: ต้องระวังว่า userId ที่ส่งมามีตัวตนจริงใน DB
+    book.likedBy.push({ id: userId } as any); 
   }
 
+  // 3. อัปเดต likeCount ให้เท่ากับจำนวนคน Like จริงๆ ใน Array
+  book.likeCount = book.likedBy.length;
+
+  // 4. บันทึกลง Database
+  return await this.bookRepository.save(book);
+  }
   async remove(id: string) {
     const book = await this.findOne(id);
     return await this.bookRepository.remove(book);

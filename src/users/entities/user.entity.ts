@@ -1,5 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn,ManyToMany,JoinTable } from 'typeorm';
+import { Book } from '../../book/entities/book.entity';
 export enum UserRole {
   ADMIN = 'ADMIN',
   USER = 'USER',
@@ -24,7 +24,10 @@ export class User {
 
   @UpdateDateColumn()
   updatedAt: Date;
-  @Column("simple-array", { nullable: true })
-  likedBooks: string[]; 
+
+  
+  @ManyToMany(() => Book, (book) => book.likedBy)
+  @JoinTable() // ต้องมี JoinTable อย่างน้อย 1 ฝั่งเพื่อให้ TypeORM สร้างตารางกลางให้
+  likedBooks: Book[];
 }
 
