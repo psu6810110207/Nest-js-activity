@@ -24,4 +24,7 @@ export class User {
 
   @UpdateDateColumn()
   updatedAt: Date;
+  @Column("simple-array", { nullable: true })
+  likedBooks: string[]; 
 }
+

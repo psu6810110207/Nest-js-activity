@@ -9,10 +9,10 @@ export class Book {
   @Column()
   title: string;
 
-  @Column()
+  @Column({ nullable: true })
   author: string;
 
-  @Column('decimal', { precision: 10, scale: 2 })
+  @Column({ default: 0 })
   price: number;
 
   @Column({ default: 0 })
